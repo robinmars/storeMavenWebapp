@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.hskj.monitor.mapper.RoleMapper">
+
+	<!-- 抽出字段列表 -->
+	<sql id="_columns">
+		sn,name,description,insert_time,update_time
+	</sql>
+	
+	<!-- 抽出where语句 -->
+	<sql id="_where">
+		<where>
+			1=1
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(sn)">
+				and sn like concat ('%',#{sn} ,'%')
+			</if>
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(name)">
+				and name like concat ('%',#{name} ,'%')
+			</if>
+
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(description)">
+				and description like concat ('%',#{description} ,'%')
+			</if>
+			
+		</where>
+	</sql>
+
+	<!-- 插入一个Role -->
+	<insert id="insert" parameterType="com.hskj.monitor.model.Role" >
+		INSERT INTO role (
+			name,
+			description,
+			insert_time,
+			update_time
+		)
+		VALUES (
+			#{name},
+			#{description},
+			now(),
+			now()
+		)
+	</insert>
+	
+	<!-- 插入一个role,并返回这条插入记录的主键sn -->
+	<insert id="insertGetPk" parameterType="com.hskj.monitor.model.Role" >
+		INSERT INTO role (
+			name,
+			description,
+			insert_time,
+			update_time
+		)
+		VALUES (
+			#{name},
+			#{description},
+			now(),
+			now()
+		)		
+		<selectKey keyProperty="sn" resultType="long" order="AFTER">
+			select LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<!-- 修改role -->
+	<update id="update" parameterType="com.hskj.monitor.model.Role">
+		UPDATE 
+			role
+		SET 
+			`name` = #{name},
+			description = #{description},
+		 	insert_time = #{insertTime},
+		 	update_time = now()
+		WHERE
+			sn = #{sn}
+	</update>
+	
+	<!-- 删除role -->
+	<delete id="delete" parameterType="string">
+		DELETE FROM 
+			role
+		WHERE 
+			sn in (${value})
+	</delete>
+	
+	<!-- 根据sn查找实体 -->
+	<select id="getByPk" parameterType="int" resultType="com.hskj.monitor.model.Role">
+    	SELECT 
+    		<include refid="_columns" /> 
+    	FROM 
+    		role
+    	WHERE 
+    		sn= #{value}
+	</select>
+	
+	<!--根据sns查找实体  -->
+	<select id="getByPkSns" parameterType="string" resultType="com.hskj.monitor.model.Role">
+		SELECT 
+			<include refid="_columns" />
+		FROM 
+			role 
+		WHERE 
+			sn in (${value})
+	</select>
+	
+	<!-- 分页查询role -->
+	<select id="getListByPage" parameterType="com.hskj.common.mybatis.BasePage" resultType="com.hskj.monitor.model.Role">
+		SELECT 
+			<include refid="_columns" /> 
+		FROM  
+			role
+		<include refid="_where"/>
+		ORDER BY sn DESC
+	</select>
+	
+	<!-- 查询role -->
+	<select id="getList" parameterType="map" resultType="com.hskj.monitor.model.Role">
+		SELECT 
+			<include refid="_columns" /> 
+		FROM  
+			role
+		<include refid="_where"/>
+		ORDER BY sn DESC
+	</select>
+
+
+	<!--根据admin的sn查找role的name集合 -->
+	<select id="getRoleSetByAdminSn" parameterType="int" resultType="String">
+		SELECT
+			role.name
+		FROM
+			role
+		JOIN admin_role ON admin_role.role_sn = role.sn
+		WHERE admin_role.admin_sn = #{value}
+	</select>
+
+
+	<!--根据admin的sn查找role的sns集合 -->
+	<select id="getRoleSnsByAdminSn" parameterType="int" resultType="int" >
+		SELECT
+			role.sn
+		FROM
+			role
+		JOIN admin_role ON admin_role.role_sn = role.sn
+		WHERE admin_role.admin_sn = #{value}
+	</select>
+
+
+	<!--得到所有的role -->
+	<select id="getRoles" parameterType="com.hskj.monitor.model.Role" resultType="com.hskj.monitor.model.Role">
+		SELECT
+			<include refid="_columns"/>
+		FROM
+			role
+
+	</select>
+
+</mapper>

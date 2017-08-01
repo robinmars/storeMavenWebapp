@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!-- 配置shiroFilter,实际是被代理对象，bean的id名字必须与web.xml中filter的名字一致 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<!-- 安全管家 -->
+		<property name="securityManager" ref="securityManager" />
+		<!-- 认证未通过则跳转到登录页面 -->
+		<property name="loginUrl" value="/index.jsp" />
+		<!-- 授权未通过则跳转到无权访问页面 -->
+		<property name="unauthorizedUrl" value="/unauthorized.do" />
+		<property name="filterChainDefinitions">
+			<value>
+				<!-- 1. anon 表示不需要认证 2. authc 表示需要认证 3. user 表示验证通过或者cookie登录都可以进入 4. 
+					logout 表示退出登录，并删除cookie 5. perms[xxx] 表示拥有这个权限的可以访问该路径 -->
+
+				/inc/** = anon
+				/login.do = anon
+				/validateCode.do = anon
+				/loginOut.do = logout
+
+				<!--告警信息 -->
+				/noticeInfo/list.do = perms[notice:select]
+				/noticeInfo/view.do = perms[notice:edit]
+				/noticeDetailInfo/list.do = perms[noticeDetail:select]
+				<!--监控节点 -->
+				/serverInfo/list.do = perms[server:select]
+				/serverInfo/view.do = perms[server:edit]
+				/serverInfo/delete.do = perms[server:delete]
+				<!--监控命令 -->
+				/monitorInfo/list.do = perms[monitor:select]
+				/monitorInfo/view.do = perms[monitor:edit]
+				/monitorInfo/delete.do = perms[monitor:delete]
+				/monitorInfo/confMonitor.do = perms[monitor:config]
+				<!--监控告警 -->
+				/monitorSms/list.do = perms[monitorSms:select]
+				/monitorSms/add.do = perms[monitorSms:add]
+				/monitorSms/update.do = perms[monitorSms:update]
+				/monitorSms/delete.do = perms[monitorSms:delete]
+				<!--用户通知 -->
+				/userInfo/list.do = perms[user:select]
+				/userInfo/view.do = perms[user:edit]
+				/userInfo/delete.do = perms[user:delete]
+				<!--用户通知组 -->
+				/userGroup/list.do = perms[userGroup:select]
+				/userGroup/view.do = perms[userGroup:edit]
+				/userGroup/delete.do = perms[userGroup:delete]
+				<!--管理员 -->
+				/admin/list.do = perms[admin:select]
+				/admin/view.do = perms[admin:edit]
+				/admin/delete.do = perms[admin:delete]
+				<!--资源 -->
+				/resource/list.do = perms[resource:select]
+				/resource/add.do = perms[resource:add]
+				/resource/update.do = perms[resource:update]
+				/resource/delete.do = perms[resource:delete]
+				<!--角色 -->
+				/role/list.do = perms[role:select]
+				/role/add.do = perms[role:add]
+				/role/update.do = perms[role:update]
+				/role/delete.do = perms[role:delete]
+				<!--监控分类 -->
+				/comment/list.do = perms[comment:select]
+				/comment/view.do = perms[comment:edit]
+				/comment/delete.do = perms[comment:delete]
+				<!--监控等级 -->
+				/alarmTypeConfig/list.do = perms[alarmType:select]
+				/alarmTypeConfig/view.do = perms[alarmType:edit]
+				<!--监控参数 -->
+				/configInfo/list.do = perms[config:select]
+				/configInfo/view.do = perms[config:edit]
+				/configInfo/delete.do = perms[config:delete]
+
+				<!--/** = authc -->
+				/** = user
+			</value>
+		</property>
+	</bean>
+
+	<!-- 配置域 -->
+	<bean id="adminRealm" class="com.hskj.monitor.realm.AdminRealm"/>
+	
+	<bean id="redisSessionDao" class="com.hskj.monitor.realm.SessionRedisDao"/>
+
+	<!-- 配置shiro安全管家 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="adminRealm"></property>
+		<!--记住我 -->
+		<property name="rememberMeManager" ref="rememberMeManager" />
+		
+		<property name="sessionMode" value="http"/>
+				
+		<!--将session托管给redis进行管理，便于搭建集群系统 -->
+		<property name="sessionManager" ref="webSessionManager" />
+	</bean>
+
+	<!--配置rememberMeManager -->
+	<bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+		<property name="cookie" ref="rememberMeCookie" />
+	</bean>
+	<bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+		<!--cookie的名字 -->
+		<constructor-arg value="rememberPwd" />
+		<!--记住我生效时间为7天 -->
+		<property name="maxAge" value="#{60 * 60 * 24 * 7}" />
+	</bean>
+	
+	<!--redis管理session -->
+	<bean id="webSessionManager"
+		class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+		<!-- session存储的实现 -->
+		<property name="sessionDAO" ref="redisSessionDao" />
+		<property name="deleteInvalidSessions" value="true" />
+		<!-- 定时检查失效的session -->
+		<property name="sessionValidationSchedulerEnabled" value="true" />
+		<property name="sessionValidationInterval" value="1800000" />
+		<!-- 设置全局会话超时时间，默认30分钟(1800000) -->
+		<property name="globalSessionTimeout" value="1800000" />
+		
+		<property name="sessionIdCookie" ref="sessionIdCookie" />
+	</bean>
+	
+	<bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+		<!-- cookie名，默认JSESSIONID -->
+		<property name="name" value="smsMonitorId" />
+		<property name="path" value="/" />
+		<property name="httpOnly" value="true" />
+	</bean>
+	
+</beans>

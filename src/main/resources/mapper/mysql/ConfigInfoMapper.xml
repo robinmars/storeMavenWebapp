@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.hskj.monitor.mapper.ConfigInfoMapper">
+	<resultMap type="com.hskj.monitor.model.ConfigInfo" id="BaseResultMap">
+		<id column="sn" property="sn"/>
+		<result column="key" property="key"/>
+		<result column="value" property="value"/>
+		<result column="operator" property="operator"/>
+		<result column="insert_time" property="insertTime"/>
+		<result column="update_time" property="updateTime"/>
+		<result column="remark" property="remark"/>
+	</resultMap>
+	<sql id="_columns">
+		sn,`key`,`value`,operator,insert_time,update_time,remark
+	</sql>
+	
+	<sql id="_where">
+		<where>
+			1=1
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(sn)">
+				and sn = #{sn}
+			</if>
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(key)">
+				and `key` like concat ('%',#{key} ,'%')
+			</if>
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(remark)">
+				and remark like concat ('%',#{remark} ,'%')
+			</if>
+			
+		</where>
+	</sql>
+	
+	<select id="getByPk" parameterType="int" resultMap="BaseResultMap">
+    	SELECT <include refid="_columns" /> FROM config_info WHERE sn=${value}
+	</select>
+
+	<update id="update" parameterType="com.hskj.monitor.model.ConfigInfo">
+		UPDATE config_info SET `key`=#{key},`value`=#{value},operator=#{operator},remark=#{remark}  WHERE sn=${sn}
+	</update>
+
+	<insert id="insert" parameterType="com.hskj.monitor.model.ConfigInfo">
+		INSERT INTO config_info (`key`,`value`,operator,insert_time,remark) VALUES (#{key},#{value},#{operator},now(),#{remark})
+	</insert>
+
+	<delete id="delete" parameterType="long">
+		DELETE FROM config_info WHERE sn in (${value})
+	</delete>
+
+	<select id="getByPkIds" parameterType="long" resultMap="BaseResultMap">
+		SELECT <include refid="_columns" /> FROM config_info WHERE sn in (${value})
+	</select>
+
+	<select id="getListByPage" resultMap="BaseResultMap" parameterType="com.hskj.common.mybatis.BasePage">
+		SELECT <include refid="_columns" /> from config_info
+		<include refid="_where"/>
+		ORDER BY sn DESC
+	</select>
+	
+	<select id="getList" resultMap="BaseResultMap" parameterType="map">
+		SELECT <include refid="_columns" /> from config_info
+		<include refid="_where"/>
+		ORDER BY sn DESC
+	</select>		
+	
+	<insert id="insertGetPk" parameterType="com.hskj.monitor.model.ConfigInfo">
+		INSERT INTO config_info (`key`,`value`,operator,insert_time,remark) VALUES (#{key},#{value},#{operator},now(),#{remark})
+		<selectKey keyProperty="sn" resultType="int" order="AFTER">
+			select LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<select id="getByKey" resultType="com.hskj.monitor.model.ConfigInfo" parameterType="string">
+		SELECT <include refid="_columns" /> FROM config_info c WHERE c.key=#{value}
+	</select>
+
+</mapper>
+

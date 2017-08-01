@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.hskj.monitor.mapper.AdminRoleMapper">
+
+	<!-- 抽出字段列表 -->
+	<sql id="_columns">
+		sn,admin_sn,role_sn
+	</sql>
+	
+
+	<!-- 插入一个Role -->
+	<insert id="insert" parameterType="com.hskj.monitor.model.AdminRole" >
+		INSERT INTO admin_role (
+			admin_sn,
+			role_sn
+		)
+		VALUES (
+			#{adminSn},
+			#{roleSn}
+		)
+	</insert>
+	
+	<!-- 修改role -->
+	<update id="update" parameterType="com.hskj.monitor.model.Role">
+		UPDATE 
+			admin_role
+		SET 
+			admin_sn = #{adminSn},
+			role_sn = #{roleSn}
+		WHERE
+			sn = #{sn}
+	</update>
+	
+	<!-- 删除role -->
+	<delete id="delete" parameterType="string">
+		DELETE FROM 
+			admin_role
+		WHERE 
+			sn in (${value})
+	</delete>
+
+
+	<!--根据admin的id删除admin_role -->
+	<delete id="deleteAdminRoleByAdminSn" parameterType="int" >
+		DELETE FROM
+			admin_role
+		WHERE
+			admin_sn = #{value}
+	</delete>
+
+
+	
+	<!-- 根据sn查找实体 -->
+	<select id="getByPk" parameterType="int" resultType="com.hskj.monitor.model.AdminRole">
+    	SELECT 
+    		<include refid="_columns" /> 
+    	FROM 
+    		admin_role
+    	WHERE 
+    		sn= #{value}
+	</select>
+
+	<!--根据admin的sn查询AdminRole -->
+	<select id="getAdminRoleByAdminSn" parameterType="int" resultType="com.hskj.monitor.model.AdminRole">
+		SELECT
+			<include refid="_columns"/>
+		FROM
+			admin_role
+		WHERE
+			admin_sn = #{value}
+
+	</select>
+
+
+</mapper>

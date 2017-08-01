@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/util   
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<!-- 拦截器  -->
+	<!-- 多个拦截器,顺序执行 -->
+	<mvc:interceptors>
+		<!-- 单用户登录拦截器 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/*.do" />
+			<mvc:mapping path="/*/**/*.do" />
+			<bean class="com.hskj.common.interceptor.SingleUserInvalidInterceptor"></bean>
+		</mvc:interceptor>
+		<!-- 防止表单重复提交拦截器 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/*.do" />
+			<mvc:mapping path="/*/**/*.do" />
+			<bean class="com.hskj.common.interceptor.AvoidDuplicateSubmissionInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+</beans>  

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.hskj.monitor.mapper.AdminInfoMapper">
+	<resultMap type="com.hskj.monitor.model.AdminInfo" id="BaseResultMap">
+		<id column="sn" property="sn"/>
+		<result column="admin_id" property="adminId"/>
+		<result column="admin_name" property="adminName"/>
+		<result column="admin_pwd" property="adminPwd"/>
+		<result column="status" property="status"/>
+		<result column="insert_time" property="insertTime"/>
+		<result column="update_time" property="updateTime"/>
+	</resultMap>
+	<sql id="_columns">
+		sn,admin_id,admin_name,admin_pwd,status,insert_time,update_time
+	</sql>
+	
+	<sql id="_where">
+		<where>
+			1=1
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(sn)">
+				and sn = #{sn}
+			</if>
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(adminId)">
+				and admin_id like concat ('%',#{adminId} ,'%')
+			</if>
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(adminName)">
+				and admin_name like concat ('%',#{adminName} ,'%')
+			</if>
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(status)">
+				and status = #{status}
+			</if>
+			
+		</where>
+	</sql>
+	
+	<select id="getByPk" parameterType="int" resultMap="BaseResultMap">
+    	SELECT <include refid="_columns" /> FROM admin_user WHERE sn=${value}
+	</select>
+
+	<update id="update" parameterType="com.hskj.monitor.model.AdminInfo">
+		UPDATE admin_user SET admin_id=#{adminId},admin_name=#{adminName},admin_pwd=#{adminPwd},status=#{status},insert_time=#{insertTime},update_time=now()
+		 WHERE sn=${sn}
+	</update>
+
+	<insert id="insert" parameterType="com.hskj.monitor.model.AdminInfo">
+		INSERT INTO admin_user (admin_id,admin_name,admin_pwd,status,insert_time,update_time) 
+		  VALUES (#{adminId},#{adminName},#{adminPwd},#{status},now(),now())
+	</insert>
+
+	<delete id="delete" parameterType="long">
+		DELETE FROM admin_user WHERE sn in (${value})
+	</delete>
+
+	<select id="getByPkIds" parameterType="long" resultMap="BaseResultMap">
+		SELECT <include refid="_columns" /> FROM admin_user WHERE sn in (${value})
+	</select>
+	
+	<select id="getListByPage" resultMap="BaseResultMap" parameterType="com.hskj.common.mybatis.BasePage">
+		SELECT <include refid="_columns" />
+		FROM admin_user
+		<include refid="_where"/>
+		ORDER BY sn DESC
+	</select>
+	
+	<select id="getList" resultMap="BaseResultMap" parameterType="map">
+		SELECT <include refid="_columns" /> from admin_user
+		<where>
+			1=1
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(sn)">
+				and sn = #{sn}
+			</if>
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(adminId)">
+				and admin_id = #{adminId}
+			</if>
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(adminName)">
+				and admin_name like concat ('%',#{adminName} ,'%')
+			</if>
+			
+			<if test="@com.hskj.common.mybatis.MybatisOgnl@isNotEmpty(status)">
+				and status = #{status}
+			</if>
+			
+		</where>
+		ORDER BY sn ASC
+	</select>
+	
+	<insert id="insertGetPk" parameterType="com.hskj.monitor.model.AdminInfo">
+		INSERT INTO admin_user (admin_id,admin_name,admin_pwd,status,insert_time,update_time) 
+		  VALUES (#{adminId},#{adminName},#{adminPwd},#{status},now(),now())
+		<selectKey keyProperty="sn" resultType="int" order="AFTER">
+			select LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<!--根据admin的id查找admin -->
+	<select id="getAdminByAdminCode" parameterType="string" resultType="com.hskj.monitor.model.AdminInfo">
+		SELECT
+			<include refid="_columns" />
+		FROM
+			admin_user
+		WHERE
+			admin_id = #{value}
+	</select>
+
+
+	<!--根据admin的id，查询资源名的集合 -->
+	<select id="getResourceNameListByAdminSn" parameterType="int" resultType="String" >
+		SELECT
+			resource.`name`
+		FROM
+			resource
+		WHERE
+			resource.sn IN (
+				SELECT
+					role_resource.resource_sn
+				FROM
+					role_resource
+				WHERE
+					role_resource.role_sn IN (
+						SELECT
+							admin_role.role_sn
+						FROM
+							admin_role
+						WHERE
+							admin_role.admin_sn = #{value}
+					)
+			)
+	</select>
+
+</mapper>
+
